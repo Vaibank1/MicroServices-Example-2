@@ -16,6 +16,9 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 @Configuration
 @EnableAuthorizationServer
 
@@ -26,16 +29,22 @@ public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
     @Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
 
+    private final static Logger log = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
 
     @Bean
     protected JwtAccessTokenConverter jwtTokenEnhancer() {
         KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new ClassPathResource("jwt.jks"), "mySecretKey".toCharArray());
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
         converter.setKeyPair(keyStoreKeyFactory.getKeyPair("jwt"));
+        log.log(Level.INFO, "The value of converter is "+ converter);
         return converter;
     }
     @Bean
     public TokenStore tokenStore() {
+
+
+        log.log(Level.INFO, "tokenStore() CALLED");
         return new JwtTokenStore(jwtTokenEnhancer());
     }
     @Override
@@ -49,10 +58,12 @@ public class OAuth2Configuration extends AuthorizationServerConfigurerAdapter {
     {
         clients.inMemory()
                 .withClient("web_app")
-                .scopes("Foo")
-                .autoApprove()
+                .scopes("FOO")
+                .autoApprove(true)
                 .authorities("FOO_READ","FOO_WRITE")
-                .authorizedGrantTypes("implicit","refresh_token","password","authorization_code");
+                .authorizedGrantTypes("implicit","refresh_token", "password", "authorization_code")
+        .secret("{noop}secret")
+        ;
 
 
     }
